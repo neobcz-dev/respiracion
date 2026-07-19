@@ -32,9 +32,9 @@
   .brandwrap{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
   .brand-mark{width:42px;height:42px;background-color:transparent;flex:none;
     background-image:var(--logo);background-size:contain;background-repeat:no-repeat;background-position:center}
-  .brand{display:flex;flex-direction:column;line-height:1;min-width:0}
+  .brand{display:flex;flex-direction:column;line-height:1;min-width:0;overflow:hidden}
   .eyebrow{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600}
-  .title{font-size:16px;font-weight:700;letter-spacing:-.01em;margin-top:4px;line-height:1.15}
+  .title{font-size:16px;font-weight:700;letter-spacing:-.01em;margin-top:4px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .iconrow{display:flex;gap:5px;flex:none}
   .iconbtn{background:var(--surface);border:1px solid var(--line);color:var(--muted);
     width:36px;height:36px;border-radius:11px;font-size:15px;cursor:pointer;display:grid;place-items:center;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.05)}
@@ -91,9 +91,10 @@
   .orb{position:absolute;inset:0;border-radius:50%;background:var(--c-soft);border:3px solid var(--c);
     box-shadow:0 12px 32px -18px var(--c);--c:var(--ice);--c-soft:var(--ice-soft);transform:scale(.62);transition:background .5s,border-color .5s;will-change:transform}
   .orb-content{position:relative;z-index:2;text-align:center;pointer-events:none;padding:0 10px;color:var(--text)}
-  .orb-num{font-size:46px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;color:var(--text)}
+  .orb-num{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;color:var(--text)}
   .orb-num.timer{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:42px}
-  .orb-num.word{font-size:34px;letter-spacing:.01em}
+  .orb-num.start{font-size:28px;font-weight:800}
+  .orb-num.word{font-size:30px;letter-spacing:.01em}
   .orb-sub{font-size:12.5px;color:rgba(18,58,51,.72);margin-top:8px;letter-spacing:.05em;min-height:16px}
   .hint-ok{color:#0b7a5e}
   .stage[data-phase="breathing"] .phase-eyebrow,.stage[data-phase="hpInhale"] .phase-eyebrow{color:var(--ice)}
@@ -483,7 +484,7 @@
   const INTENS={gentle:{breaths:25,cycleSec:4.6},classic:{breaths:30,cycleSec:3.6},power:{breaths:35,cycleSec:2.8}};
   function startBreathing(){
     phase=PH.BREATHING;round+=1;tStart=performance.now();stage.dataset.phase=phase;setColor("ice");
-    phaseLabel.textContent="Respira";orbNum.classList.remove("timer","word");roundChip.textContent="Ronda "+round;
+    phaseLabel.textContent="Respira";orbNum.classList.remove("timer","word","start");roundChip.textContent="Ronda "+round;
     instruction.textContent="Sigue la burbuja: inhala profundo, suelta sin forzar. "+cfg.breaths+" es el mínimo; sigue si quieres y toca para retener.";
     orbSub.textContent="toca cuando termines";btnFinish.disabled=false;renderRoundsLive();
     playBell();playBreath("in",cfg.cycleSec*0.5);stopRaf();
@@ -530,7 +531,7 @@
 
   // ---------- motor de secuencia ----------
   function startSeq(steps,opts){stopRaf();seq={steps,i:0,stepStart:performance.now(),paused:false,rounds:0,opts:opts||{},tStart:performance.now(),pausedMs:0,pauseAt:0,reached:false};btnFinish.disabled=false;applyStep();loopSeq();}
-  function applyStep(){const s=seq.steps[seq.i];stage.dataset.phase=s.phase||"";setColor(s.color||"ice");
+  function applyStep(){const s=seq.steps[seq.i];orbNum.classList.remove("start");stage.dataset.phase=s.phase||"";setColor(s.color||"ice");
     phaseLabel.textContent=s.label;instruction.textContent=s.instr||"";
     if(s.word){orbNum.classList.remove("timer");orbNum.classList.add("word");orbNum.textContent=s.word;}
     else{orbNum.classList.remove("word");orbNum.classList.add("timer");}
@@ -561,7 +562,7 @@
     stopRaf();rafId=requestAnimationFrame(frame);}
   function startFire(){
     fire={paused:false,start:performance.now(),last:-1};stage.dataset.phase="hpApnea";setColor("amber");
-    phaseLabel.textContent="Fuego";orbNum.classList.remove("timer","word");orbNum.textContent="0";
+    phaseLabel.textContent="Fuego";orbNum.classList.remove("timer","word","start");orbNum.textContent="0";
     instruction.textContent="Exhalaciones cortas y forzadas por la nariz; la inhalación entra sola. Haz tandas de ~30 y descansa.";
     orbSub.textContent="exhala rápido";roundChip.textContent="Tanda 1";btnFinish.disabled=false;loopFire();
   }
@@ -619,7 +620,7 @@
   }
   $("#btnReset").addEventListener("click",()=>{stopAll();resetVisual(defaultLabel(),defaultInstr());});
   function resetVisual(lbl,instr){stage.dataset.phase="idle";setColor(MODE==="box"?"violet":"ice");setScale(0.62);
-    phaseLabel.textContent=lbl||defaultLabel();roundChip.textContent="";orbNum.classList.remove("timer","word");
+    phaseLabel.textContent=lbl||defaultLabel();roundChip.textContent="";orbNum.classList.remove("timer","word");orbNum.classList.add("start");
     orbNum.textContent=MODE==="whm"?"Iniciar":"Empezar";orbSub.textContent="toca para comenzar";
     instruction.textContent=instr||defaultInstr();renderRoundsLive();btnFinish.disabled=true;}
   function defaultLabel(){if(!MODE)return "";return MODE==="whm"?"Listo para empezar":MODES[MODE].name;}
