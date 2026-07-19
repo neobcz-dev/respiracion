@@ -111,6 +111,14 @@
   .btn.ghost{background:transparent;color:var(--muted)}
   .btn:disabled{opacity:.4;cursor:not-allowed}
   .foot{font-size:11.5px;color:var(--muted2);text-align:center;margin-top:14px;line-height:1.6}
+  .rec-hint{font-size:12px;color:var(--ice);margin-top:10px;font-weight:700;letter-spacing:.02em;min-height:14px}
+  .infopanel{padding:4px 2px}
+  .infopanel h2{margin:6px 0 2px;font-size:20px}
+  .infopanel .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .infopanel h3{margin:16px 0 7px;font-size:12px;color:#178f6f;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .infopanel p{font-size:14px;line-height:1.6;color:#33534b;margin:0 0 10px}
+  .infopanel ol,.infopanel ul{font-size:14px;line-height:1.6;color:#33534b;padding-left:20px;margin:0 0 10px}
+  .infopanel li{margin-bottom:6px}
 
   .brandfoot{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
   .brandfoot .logo{width:236px;height:200px;background-color:transparent;flex:none;background-image:var(--logo);background-size:contain;background-repeat:no-repeat;background-position:center}
@@ -223,6 +231,7 @@
         </div>
       </div>
       <div class="instruction" id="instruction"></div>
+      <div class="rec-hint" id="recHint"></div>
       <div class="rounds" id="roundsLive"></div>
     </div>
     <div class="controls">
@@ -230,6 +239,7 @@
       <button class="btn finish" id="btnFinish" disabled>Finalizar sesión</button>
     </div>
     <div class="foot" id="foot"></div>
+    <div class="infopanel" id="infoPanel" style="display:none"></div>
   </div>
 
   <div class="brandfoot">
@@ -317,6 +327,7 @@
   const instruction=$("#instruction"),roundChip=$("#roundChip"),roundsLive=$("#roundsLive");
   const btnFinish=$("#btnFinish"),banner=$("#banner"),brandTitle=$("#brandTitle"),foot=$("#foot");
   const homeView=$("#homeView"),practiceView=$("#practiceView"),btnGuide=$("#btnGuide");
+  const controlsEl=document.querySelector(".controls"),infoPanel=$("#infoPanel"),recHint=$("#recHint");
 
   let MODE=null;
   const PH={IDLE:"idle",BREATHING:"breathing",RETENTION:"retention",RECOVERY:"recovery",EXHALE:"exhale",FINISHED:"finished"};
@@ -413,17 +424,17 @@
 
   // ---------- definición de modos ----------
   const MODES={
-    whm:{name:"Wim Hof",type:"whm",scored:true,foot:"No lo hagas en el agua, conduciendo ni de pie. Detente si te mareas. · No es consejo médico."},
-    fire:{name:"Respiración de fuego",type:"fire",foot:"Sentado, estómago vacío, mejor por la mañana. Para si te mareas. · No es consejo médico.",
+    whm:{name:"Wim Hof",type:"whm",scored:true,rec:"3–4 rondas",foot:"No lo hagas en el agua, conduciendo ni de pie. Detente si te mareas. · No es consejo médico."},
+    fire:{name:"Respiración de fuego",type:"fire",rec:"Tandas de 20–30 · 2–3 tandas",foot:"Sentado, estómago vacío, mejor por la mañana. Para si te mareas. · No es consejo médico.",
       banner:"<b>Precaución:</b> evita con embarazo, hipertensión, problemas cardíacos, epilepsia, glaucoma, hernias/úlceras o problemas respiratorios (asma/EPOC). Hazla sentada, nunca en el agua. Aprende con un instructor. No es consejo médico."},
-    hypo:{name:"Hipopresiva",type:"seq",steps:hypoSteps,word:"Apnea",scored:true,foot:"La apnea sube brevemente la presión intratorácica. Si dudas, consulta con un profesional.",
+    hypo:{name:"Hipopresiva",type:"seq",steps:hypoSteps,word:"Apnea",scored:true,rec:"3–6 apneas por serie · 5–10 min",foot:"La apnea sube brevemente la presión intratorácica. Si dudas, consulta con un profesional.",
       banner:"<b>Precaución:</b> evita si estás embarazada, tienes hipertensión, problemas cardíacos o respiratorios, o cirugía abdominal reciente. Aprende con un profesional. No es consejo médico."},
-    sleep:{name:"Dormir 4-7-8",type:"seq",steps:sleepSteps,word:"Ciclo",foot:"Ideal antes de dormir. Empieza con ~4 ciclos, sentado o recostado."},
-    box448:{name:"Box 4-4-8",type:"seq",steps:box448Steps,word:"Ciclo",foot:"Exhalación larga: relaja. Respira sin forzar."},
-    resonant:{name:"Coherencia cardíaca",type:"seq",steps:resonantSteps,word:"Ciclo",foot:"~6 respiraciones por minuto. Deja que fluya como una ola."},
-    box:{name:"Caja 4-4-4-4",type:"seq",steps:boxSteps,word:"Ronda",foot:"Técnica calmante. Respira sin forzar en ningún momento."},
-    run:{name:"Cadencia al correr",type:"seq",steps:runSteps,word:"Ciclo",foot:"Coordina con tus pasos (3:2). Ritmo cómodo, sin forzar."},
-    sigh:{name:"Suspiro fisiológico",type:"seq",steps:sighSteps,word:"Ciclo",foot:"Calma rápida: con 1-3 ciclos ya notas efecto."}
+    sleep:{name:"Dormir 4-7-8",type:"seq",steps:sleepSteps,word:"Ciclo",rec:"Hasta 4 ciclos (máx. 8)",foot:"Ideal antes de dormir. Empieza con ~4 ciclos, sentado o recostado."},
+    box448:{name:"Box 4-4-8",type:"seq",steps:box448Steps,word:"Ciclo",rec:"5–10 ciclos · 3–5 min",foot:"Exhalación larga: relaja. Respira sin forzar."},
+    resonant:{name:"Coherencia cardíaca",type:"seq",steps:resonantSteps,word:"Ciclo",rec:"5–10 min",foot:"~6 respiraciones por minuto. Deja que fluya como una ola."},
+    box:{name:"Caja 4-4-4-4",type:"seq",steps:boxSteps,word:"Ronda",rec:"3–5 min",foot:"Técnica calmante. Respira sin forzar en ningún momento."},
+    run:{name:"Cadencia al correr",type:"info",foot:"Coordina con tus pasos. Ritmo cómodo, sin forzar."},
+    sigh:{name:"Suspiro fisiológico",type:"seq",steps:sighSteps,word:"Ciclo",rec:"1–3 ciclos (agudo) · ~5 min",foot:"Calma rápida: con 1-3 ciclos ya notas efecto."}
   };
   const CATS=[
     {name:"SOS · Calma rápida",sub:"Para bajar la ansiedad en segundos",color:"#d64545",modes:["sigh"]},
@@ -452,10 +463,18 @@
   function openMode(m){
     stopAll();MODE=m;const cfgm=MODES[m];
     homeView.style.display="none";practiceView.style.display="block";
-    brandTitle.textContent=cfgm.name;btnGuide.style.display="grid";
+    brandTitle.textContent=cfgm.name;
     if(cfgm.banner){banner.innerHTML=cfgm.banner;banner.classList.add("show");}else{banner.classList.remove("show");}
     foot.textContent=cfgm.foot||"";
-    resetVisual();window.scrollTo(0,0);
+    if(cfgm.type==="info"){
+      stage.style.display="none";controlsEl.style.display="none";recHint.textContent="";
+      infoPanel.style.display="block";infoPanel.innerHTML=guideHTML();btnGuide.style.display="none";
+    }else{
+      stage.style.display="";controlsEl.style.display="flex";infoPanel.style.display="none";btnGuide.style.display="grid";
+      recHint.textContent=cfgm.rec?("Recomendado: "+cfgm.rec):"";
+      resetVisual();
+    }
+    window.scrollTo(0,0);
   }
   $("#btnBack").addEventListener("click",showHome);
 
@@ -530,7 +549,7 @@
   function loopFire(){const period=(cfg.fireRate||0.7)*1000,exFrac=0.38;
     function frame(now){if(!fire||fire.paused)return;
       const t=now-fire.start,count=Math.floor(t/period),p=(t%period)/period;
-      const scale=p<exFrac?(0.82-0.32*ease(p/exFrac)):(0.5+0.32*ease((p-exFrac)/(1-exFrac)));setScale(scale);
+      const HI=0.52,LO=0.4;const scale=p<exFrac?(HI-(HI-LO)*ease(p/exFrac)):(LO+(HI-LO)*ease((p-exFrac)/(1-exFrac)));setScale(scale);
       if(count!==fire.last){fire.last=count;playBreath("out",0.16);orbNum.textContent=(count+1).toString();}
       rafId=requestAnimationFrame(frame);}
     stopRaf();rafId=requestAnimationFrame(frame);}
@@ -552,6 +571,7 @@
     if(!storageOK&&!memWarned){memWarned=true;instruction.textContent="Aviso: no puedo guardar en este navegador. Usa Exportar al terminar.";}
     if(!MODE)return;
     const type=MODES[MODE].type;
+    if(type==="info")return;
     if(type==="whm"){
       switch(phase){
         case PH.IDLE:case PH.FINISHED:round=0;sessionRounds=[];renderRoundsLive();startBreathing();break;
@@ -605,43 +625,54 @@
   const overlayGuide=$("#overlayGuide"),guideSheet=$("#guideSheet");
   function guideHTML(){
     switch(MODE){
-      case "whm":return `<h2>Wim Hof · cómo hacerlo</h2><div class="sub">Una sola técnica: respiración enérgica + retención, en varias rondas.</div>
-        <ol><li><b>Prepárate:</b> sentado o recostado, en un lugar seguro. Nunca en el agua, de pie o conduciendo.</li>
+      case "whm":return `<h2>Wim Hof</h2><div class="sub">Respiración enérgica + retención, en varias rondas.</div>
+        <h3>¿Para qué sirve?</h3><p>Aumenta la energía y la tolerancia al estrés, mejora el foco y puede reducir el estrés percibido. Genera una descarga de adrenalina "controlada".</p>
+        <h3>Cómo hacerlo</h3><ol><li>Sentado o recostado, en un lugar seguro. Nunca en el agua, de pie o conduciendo.</li>
         <li><b>Respiraciones (mín. ~30):</b> inhala profundo y suelta sin forzar. Puedes hacer más y tocar la burbuja cuando quieras.</li>
         <li><b>Retención:</b> tras la última exhalación, sostén con los pulmones vacíos hasta sentir la necesidad de respirar.</li>
-        <li><b>Recuperación:</b> inhala profundo y sostén ~15 s; luego exhala y empieza otra ronda.</li><li>Suelen hacerse 3–4 rondas.</li></ol>
-        <div class="warn">Es normal sentir hormigueo o mareo leve. Consulta a un médico si tienes condiciones cardíacas, epilepsia o estás embarazada.</div>`;
-      case "fire":return `<h2>Respiración de fuego (Kapalabhati)</h2><div class="sub">Técnica energizante del yoga: exhalaciones rápidas y forzadas.</div>
+        <li><b>Recuperación:</b> inhala profundo y sostén ~15 s; luego exhala.</li></ol>
+        <h3>¿Cuándo parar?</h3><p>Haz <b>3–4 rondas</b> por sesión. Es normal sentir hormigueo o mareo leve; si el mareo es fuerte, detente. Consulta a un médico si tienes condiciones cardíacas, epilepsia o estás embarazada.</p>`;
+      case "fire":return `<h2>Respiración de fuego (Kapalabhati)</h2><div class="sub">Exhalaciones rápidas y forzadas por la nariz.</div>
         <div class="warn"><b>Contraindicaciones:</b> embarazo, hipertensión, problemas cardíacos, epilepsia, glaucoma, hernias/úlceras, asma/EPOC. Hazla sentada, nunca en el agua. Aprende con un instructor. No es consejo médico.</div>
-        <ol><li>Siéntate con la espalda recta, estómago vacío (mejor por la mañana).</li>
+        <h3>¿Para qué sirve?</h3><p>Es energizante y despeja la mente (como un café, pero natural). Ayuda a despertar, activar el cuerpo y ganar foco. Evítala antes de dormir.</p>
+        <h3>Cómo hacerlo</h3><ol><li>Siéntate con la espalda recta, estómago vacío (mejor por la mañana).</li>
         <li><b>Exhalaciones activas:</b> expulsa el aire por la nariz en golpes cortos y rápidos contrayendo el abdomen.</li>
-        <li><b>Inhalaciones pasivas:</b> entre golpe y golpe, relaja el vientre y el aire entra solo. No fuerces la inhalación.</li>
-        <li>Haz tandas de ~20-30 exhalaciones, descansa respirando normal, y repite 2-3 veces.</li></ol>
-        <p style="font-size:12.5px;color:var(--muted2)">Es energizante: evítala antes de dormir. Para de inmediato si te mareas.</p>`;
-      case "hypo":return `<h2>Hipopresiva · cómo hacerlo</h2><div class="sub">Técnica distinta de Wim Hof. Su clave es la apnea espiratoria con vacío abdominal.</div>
+        <li><b>Inhalaciones pasivas:</b> entre golpe y golpe relaja el vientre; el aire entra solo. No fuerces la inhalación.</li></ol>
+        <h3>¿Cuándo parar?</h3><p>Haz <b>tandas de 20–30 exhalaciones</b>, descansa respirando normal, y repite <b>2–3 tandas</b>. Para de inmediato si te mareas.</p>`;
+      case "hypo":return `<h2>Hipopresiva</h2><div class="sub">Apnea espiratoria con vacío abdominal. Distinta de Wim Hof.</div>
         <div class="warn"><b>Contraindicaciones:</b> embarazo, hipertensión no controlada, problemas cardíacos o respiratorios, postoperatorio abdominal reciente. Empieza con instrucción profesional. No es consejo médico.</div>
-        <ol><li><b>Postura:</b> espalda larga, como si crecieras hacia arriba.</li>
+        <h3>¿Para qué sirve?</h3><p>Activa y tonifica el core profundo y el suelo pélvico. Se usa mucho en posparto y para trabajar el abdomen sin aumentar la presión hacia afuera.</p>
+        <h3>Cómo hacerlo</h3><ol><li><b>Postura:</b> espalda larga, como si crecieras hacia arriba.</li>
         <li><b>3 respiraciones costales:</b> inhala abriendo las costillas y exhala ~el doble de largo (p. ej. 2 s / 4 s).</li>
         <li><b>En la 3.ª, vacía del todo</b> los pulmones.</li>
         <li><b>Apnea + vacío:</b> sin aire, abre las costillas SIN dejar entrar aire y mete el ombligo adentro y arriba. Aguanta ~10 s.</li>
-        <li><b>Descanso:</b> 2-3 respiraciones normales antes de repetir.</li></ol>`;
-      case "sleep":return `<h2>Respiración 4-7-8 · para dormir</h2><div class="sub">Técnica relajante popularizada por el Dr. Andrew Weil.</div>
-        <ol><li>Exhala por completo por la boca.</li><li>Inhala por la nariz contando <b>4</b>.</li><li>Retén contando <b>7</b>.</li><li>Exhala por la boca, con leve silbido, contando <b>8</b>.</li><li>Repite hasta <b>4 ciclos</b> al inicio (con las semanas, hasta 8).</li></ol>
-        <p style="font-size:12.5px;color:var(--muted2)">Lo importante es la proporción, no los segundos exactos. Hazla sentado o recostado.</p>`;
-      case "box448":return `<h2>Box 4-4-8</h2><div class="sub">Variante de la respiración en caja con exhalación extendida (activa el parasimpático).</div>
-        <ol><li>Inhala 4 s.</li><li>Retén con aire 4 s.</li><li>Exhala 8 s (el doble), vaciando por completo.</li></ol>
-        <p>No hay retención en vacío. Útil para relajarte y sobrellevar molestias. No sustituye tratamiento médico del dolor.</p>`;
-      case "resonant":return `<h2>Coherencia cardíaca (resonante)</h2><div class="sub">Respirar a ~6 (5,5-6) respiraciones por minuto para maximizar la HRV.</div>
-        <ol><li>Inhala por la nariz ~5,5 s.</li><li>Exhala ~5,5 s.</li><li>Sin retenciones, simétrico y continuo, como una ola.</li></ol>
-        <p>Muy respaldado en la literatura de biofeedback (resonancia del barorreflejo a 0,1 Hz). Ideal 5-10 min.</p>`;
+        <li><b>Descanso:</b> 2–3 respiraciones normales antes de repetir.</li></ol>
+        <h3>¿Cuándo parar?</h3><p>Haz <b>3–6 apneas por serie</b> y unas 2–3 series; sesiones de <b>5–10 min</b>. Para si sientes mareo o presión molesta.</p>`;
+      case "sleep":return `<h2>Respiración 4-7-8 · para dormir</h2><div class="sub">Popularizada por el Dr. Andrew Weil.</div>
+        <h3>¿Para qué sirve?</h3><p>Relaja el sistema nervioso y ayuda a conciliar el sueño y a bajar la ansiedad. Ideal en la cama o cuando cuesta "desconectar".</p>
+        <h3>Cómo hacerlo</h3><ol><li>Exhala por completo por la boca.</li><li>Inhala por la nariz contando <b>4</b>.</li><li>Retén contando <b>7</b>.</li><li>Exhala por la boca, con leve silbido, contando <b>8</b>.</li></ol>
+        <h3>¿Cuándo parar?</h3><p>Repite <b>hasta 4 ciclos</b> al inicio; con la práctica de varias semanas, hasta 8. Lo importante es la proporción, no los segundos exactos.</p>`;
+      case "box448":return `<h2>Box 4-4-8</h2><div class="sub">Respiración en caja con exhalación extendida.</div>
+        <h3>¿Para qué sirve?</h3><p>La exhalación al doble de la inhalación activa el sistema parasimpático (calma). Útil para relajarte y sobrellevar molestias o momentos de tensión. No sustituye el tratamiento médico del dolor.</p>
+        <h3>Cómo hacerlo</h3><ol><li>Inhala 4 s.</li><li>Retén con aire 4 s.</li><li>Exhala 8 s (el doble), vaciando por completo. Sin retención en vacío.</li></ol>
+        <h3>¿Cuándo parar?</h3><p>Haz <b>5–10 ciclos</b> o <b>3–5 min</b>. Respira siempre sin forzar.</p>`;
+      case "resonant":return `<h2>Coherencia cardíaca (resonante)</h2><div class="sub">~6 respiraciones por minuto.</div>
+        <h3>¿Para qué sirve?</h3><p>Reduce el estrés crónico, mejora la variabilidad cardíaca (HRV) y produce una calma atenta. Ideal antes de una presentación o para meditar. Muy respaldada en la literatura de biofeedback.</p>
+        <h3>Cómo hacerlo</h3><ol><li>Inhala por la nariz ~5,5 s.</li><li>Exhala ~5,5 s.</li><li>Sin retenciones, simétrico y continuo, como una ola.</li></ol>
+        <h3>¿Cuándo parar?</h3><p>Practica <b>5–10 min</b> (mínimo ~3 min para notar el efecto).</p>`;
       case "box":return `<h2>Respiración en caja (Calma)</h2><div class="sub">Cuatro tiempos iguales.</div>
-        <ol><li>Inhala 4 s.</li><li>Sostén 4 s.</li><li>Exhala 4 s.</li><li>Sostén vacío 4 s.</li></ol><p>Repite en calma varios minutos.</p>`;
-      case "run":return `<h2>Cadencia al correr (3:2)</h2><div class="sub">Sincroniza la respiración con tus pasos.</div>
-        <ol><li>Inhala durante <b>3 pasos</b>.</li><li>Exhala durante <b>2 pasos</b>.</li><li>Al ser impar (3:2), el pie de la exhalación alterna, repartiendo el impacto y ayudando a evitar el "flato".</li></ol>
-        <p>Para trotes fáciles/moderados. En sprints puedes pasar a 2:1. Úsalo como metrónomo; la mejora de rendimiento es modesta e individual.</p>`;
+        <h3>¿Para qué sirve?</h3><p>Da claridad y foco, y estabiliza las emociones. Usada por deportistas y en contextos de alta exigencia para "centrarse" antes de actuar.</p>
+        <h3>Cómo hacerlo</h3><ol><li>Inhala 4 s.</li><li>Sostén 4 s.</li><li>Exhala 4 s.</li><li>Sostén vacío 4 s.</li></ol>
+        <h3>¿Cuándo parar?</h3><p>Repite en calma <b>3–5 min</b>.</p>`;
       case "sigh":return `<h2>Suspiro fisiológico</h2><div class="sub">La forma más rápida de bajar el estrés agudo (estudio de Stanford, Balban et al., 2023).</div>
-        <ol><li><b>Inhala</b> por la nariz llenando la mayor parte de los pulmones (~2 s).</li><li><b>Segundo sorbo corto</b> por la nariz para llenar del todo (reabre los alvéolos).</li><li><b>Exhala largo</b> por la boca (~4-5 s), como un suspiro.</li></ol>
-        <p>Con 1-3 ciclos ya notas efecto; para práctica sostenida, ~5 minutos.</p>`;
+        <h3>¿Para qué sirve?</h3><p>Calmar un pico de ansiedad o pánico, frenar la frustración o bajar las pulsaciones tras una discusión, en segundos. Es tu herramienta de "necesito calmarme ya".</p>
+        <h3>Cómo hacerlo</h3><ol><li><b>Inhala</b> por la nariz llenando la mayor parte de los pulmones (~2 s).</li><li><b>Segundo sorbo corto</b> por la nariz para llenar del todo (reabre los alvéolos).</li><li><b>Exhala largo</b> por la boca (~4-5 s), como un suspiro.</li></ol>
+        <h3>¿Cuándo parar?</h3><p>Con <b>1–3 ciclos</b> ya notas alivio; para práctica sostenida, ~<b>5 min</b>.</p>`;
+      case "run":return `<h2>Cadencia al correr (3:2)</h2><div class="sub">Guía de referencia · para leer antes de correr, no durante.</div>
+        <h3>¿Para qué sirve?</h3><p>Correr o hacer cardio sin quedarte sin aliento, repartir el impacto entre ambos lados del cuerpo y ayudar a evitar el "flato" (dolor de costado). El beneficio de rendimiento es modesto e individual, pero ayuda a respirar con orden.</p>
+        <h3>Cómo hacerlo</h3><ol><li>Inhala durante <b>3 pasos</b> y exhala durante <b>2 pasos</b>.</li><li>Al ser impar (3:2), el pie sobre el que exhalas <b>va alternando</b>, repartiendo la carga.</li><li>En sprints o subidas, pasa a <b>2:1</b> (2 pasos inhalas, 1 exhalas).</li></ol>
+        <h3>Cómo practicarla</h3><p>Apréndela primero <b>caminando</b> hasta que salga sola. Luego, al correr, aplícala ~1 minuto por kilómetro al inicio y ve aumentando durante 4–6 semanas.</p>
+        <p style="font-size:12.5px;color:var(--muted2)">No lleva animación porque no conviene mirar el celular mientras corres: es una técnica que se hace con el cuerpo, guiándote por tus pasos.</p>`;
     }
     return "";
   }
