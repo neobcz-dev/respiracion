@@ -1,4 +1,4 @@
-const CACHE = "respiracion-v2";
+const CACHE = "respiracion-v3";
 const CORE = [
   "./",
   "./index.html",
@@ -10,9 +10,7 @@ const CORE = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())
-  );
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {
@@ -23,22 +21,52 @@ self.addEventListener("activate", (e) => {
   );
 });
 
+self.addEventListener("message", (e) => {
+  if (e.data === "skipWaiting") self.skipWaiting();
+});
+
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
-  e.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req).then((resp) => {
-        // guarda en caché copias del mismo origen (index, ambient.mp3, íconos…)
-        try {
-          if (resp && resp.status === 200 && new URL(req.url).origin === self.location.origin) {
+
+  const url = new URL(req.url);
+  const sameOrigin = url.origin === self.location.origin;
+
+  // El HTML de la app: RED PRIMERO (siempre la versión más nueva; offline como respaldo).
+  const isDocument =
+    req.mode === "navigate" ||
+    (sameOrigin && (url.pathname.endsWith("/") || url.pathname.endsWith("index.html")));
+
+  if (isDocument) {
+    e.respondWith(
+      fetch(req)
+        .then((resp) => {
+          if (resp && resp.status === 200) {
+            const copy = resp.clone();
+            caches.open(CACHE).then((c) => c.put("./index.html", copy));
+          }
+          return resp;
+        })
+        .catch(() => caches.match("./index.html").then((r) => r || caches.match("./")))
+    );
+    return;
+  }
+
+  // Recursos estáticos del mismo origen: caché primero con respaldo de red.
+  if (sameOrigin) {
+    e.respondWith(
+      caches.match(req).then((cached) =>
+        cached ||
+        fetch(req).then((resp) => {
+          if (resp && resp.status === 200) {
             const copy = resp.clone();
             caches.open(CACHE).then((c) => c.put(req, copy));
           }
-        } catch (_) {}
-        return resp;
-      }).catch(() => caches.match("./index.html"));
-    })
-  );
+          return resp;
+        }).catch(() => cached)
+      )
+    );
+    return;
+  }
+  // Otros orígenes (YouTube, etc.): red normal.
 });
