@@ -28,16 +28,16 @@
     -webkit-tap-highlight-color:transparent; overflow-x:hidden;
   }
   .wrap{flex:1;display:flex;flex-direction:column;max-width:540px;margin:0 auto;width:100%;padding:16px 16px 24px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
-  .brandwrap{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+  header{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin-bottom:14px}
+  .brandwrap{display:flex;align-items:center;gap:11px;min-width:0}
   .brand-mark{width:42px;height:42px;background-color:transparent;flex:none;
     background-image:var(--logo);background-size:contain;background-repeat:no-repeat;background-position:center}
-  .brand{display:flex;flex-direction:column;line-height:1;min-width:0;overflow:hidden}
+  .brand{display:flex;flex-direction:column;line-height:1;min-width:0}
   .eyebrow{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:600}
-  .title{font-size:16px;font-weight:700;letter-spacing:-.01em;margin-top:4px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .iconrow{display:flex;gap:5px;flex:none}
+  .title{font-size:18px;font-weight:700;letter-spacing:-.01em;margin-top:5px;line-height:1.2}
+  .iconrow{display:flex;gap:8px;flex-wrap:wrap}
   .iconbtn{background:var(--surface);border:1px solid var(--line);color:var(--muted);
-    width:36px;height:36px;border-radius:11px;font-size:15px;cursor:pointer;display:grid;place-items:center;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+    width:40px;height:40px;border-radius:11px;font-size:16px;cursor:pointer;display:grid;place-items:center;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.05)}
   .iconbtn:hover{color:var(--text);border-color:var(--ice)}
   .iconbtn.active{color:var(--ice);border-color:var(--ice)}
 
