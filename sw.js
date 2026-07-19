@@ -1,4 +1,4 @@
-const CACHE = "respiracion-v1";
+const CACHE = "respiracion-v2";
 const CORE = [
   "./",
   "./index.html",
