@@ -76,8 +76,9 @@
   .ambient .row{display:flex;gap:8px}
   .ambient input[type=text]{flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px 12px;font-size:13px;min-width:0}
   .ambient .ldbtn{background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:0 16px;font-weight:700;cursor:pointer;flex:none}
-  .ambient iframe{width:100%;height:80px;border:0;border-radius:10px;margin-top:10px;display:none;background:#000}
-  .ambient iframe.show{display:block}
+  .ytbox{margin-top:10px;border-radius:10px;overflow:hidden;background:#000;display:none}
+  .ytbox.show{display:block}
+  .ytbox iframe{width:100%;height:150px;border:0;display:block}
   .ambient-actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
   .ambient .openbtn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ice);text-decoration:none;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 14px}
   .ambient .openbtn:hover{border-color:var(--ice)}
@@ -207,7 +208,7 @@
       <input type="text" id="ytInput" placeholder="Enlace de YouTube o YouTube Music…">
       <button class="ldbtn" id="ytLoad">Cargar</button>
     </div>
-    <iframe id="ytFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <div id="ytPlayerBox" class="ytbox"><div id="ytPlayer"></div></div>
     <div class="ambient-actions"><a class="openbtn" id="ytOpen" target="_blank" rel="noopener noreferrer">Abrir en YouTube &#8599;</a></div>
     <div class="note" id="ytNote"></div>
   </div>
@@ -751,21 +752,43 @@
   ambVolEl.addEventListener("input",()=>{cfg.ambVol=+ambVolEl.value;valAmbVol.textContent=cfg.ambVol+"%";ambAudio.volume=Math.max(0,Math.min(1,cfg.ambVol/100));save(CFG_KEY,cfg);});
   setPlayIcon();
 
-  // ---------- música: YouTube ----------
-  const ytInput=$("#ytInput"),ytFrame=$("#ytFrame"),ytNote=$("#ytNote"),ytOpen=$("#ytOpen");
+  // ---------- música: YouTube (IFrame API con detección de errores) ----------
+  const ytInput=$("#ytInput"),ytNote=$("#ytNote"),ytOpen=$("#ytOpen"),ytBox=$("#ytPlayerBox");
   function ytParse(url){try{const u=new URL((url||"").trim());
     if(u.hostname.includes("youtu.be")){const id=u.pathname.slice(1);return id?{type:"v",id}:null;}
     if(u.searchParams.get("v"))return {type:"v",id:u.searchParams.get("v")};
     if(u.searchParams.get("list"))return {type:"l",id:u.searchParams.get("list")};return null;}catch(e){return null;}}
+  let ytPlayer=null,ytApiReady=false,ytApiLoading=false,ytPending=null;
+  function loadYtApi(cb){
+    if(ytApiReady){cb();return;}
+    ytPending=cb;if(ytApiLoading)return;ytApiLoading=true;
+    window.onYouTubeIframeAPIReady=function(){ytApiReady=true;if(ytPending){const c=ytPending;ytPending=null;c();}};
+    const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";document.head.appendChild(s);
+  }
+  function ytError(){ytNote.textContent="Este video no se puede reproducir dentro de la app (el propietario deshabilitó la reproducción incrustada). Usa “Abrir en YouTube”, o prueba otro enlace.";}
+  function ytCue(p){
+    loadYtApi(function(){
+      const vars={playsinline:1,rel:0,origin:location.origin};
+      if(!ytPlayer){
+        ytPlayer=new window.YT.Player("ytPlayer",{width:"100%",height:"150",
+          videoId:p.type==="v"?p.id:undefined,
+          playerVars:p.type==="l"?Object.assign({listType:"playlist",list:p.id},vars):vars,
+          events:{onReady:function(){ytBox.classList.add("show");ytNote.textContent="Listo. Toca ▶ para reproducir.";},
+                  onError:function(e){ytError(e.data);}}});
+      } else {
+        if(p.type==="l")ytPlayer.cuePlaylist({list:p.id,listType:"playlist"});else ytPlayer.cueVideoById(p.id);
+        ytBox.classList.add("show");ytNote.textContent="Listo. Toca ▶ para reproducir.";
+      }
+    });
+  }
   function loadYt(url,fromUser){const p=ytParse(url);
     if(!p){if(fromUser)ytNote.textContent="No reconocí el enlace. Copia el enlace de compartir de YouTube / YouTube Music.";return;}
-    const base="https://www.youtube.com/embed/";ytFrame.src=p.type==="v"?base+p.id+"?rel=0&playsinline=1":base+"videoseries?list="+p.id+"&playsinline=1";
-    ytFrame.classList.add("show");if(ytOpen)ytOpen.href=url;
-    if(fromUser){ytNote.textContent="Cargado. Toca ▶. Si ves un error (153/150), ese video no permite reproducirse incrustado: usa “Abrir en YouTube”, o pega otro enlace.";cfg.yt=url;save(CFG_KEY,cfg);}}
+    if(ytOpen)ytOpen.href=url;
+    if(fromUser){cfg.yt=url;save(CFG_KEY,cfg);ytNote.textContent="Cargando…";ytCue(p);}}
   $("#ytLoad").addEventListener("click",()=>loadYt(ytInput.value,true));
   $("#btnMusic").addEventListener("click",()=>{const on=ambient.classList.toggle("show");$("#btnMusic").classList.toggle("active",on);});
-  (function initYt(){const start=cfg.yt||DEFAULT_YT;ytInput.value=start;loadYt(start,false);if(ytOpen)ytOpen.href=start;
-    ytNote.textContent=cfg.yt?"":"La música principal es la pista de arriba. YouTube es opcional; si da error, usa “Abrir en YouTube”.";})();
+  (function initYt(){const start=cfg.yt||DEFAULT_YT;ytInput.value=start;if(ytOpen)ytOpen.href=start;
+    ytNote.textContent="La música principal es la pista de arriba. Para YouTube/YouTube Music, pega un enlace y toca “Cargar”. Muchos videos musicales no permiten reproducirse incrustados; si pasa, usa “Abrir en YouTube”.";})();
 
   // ---------- sonido / ajustes ----------
   const btnSound=$("#btnSound");
